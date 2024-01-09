@@ -1,16 +1,14 @@
 #![allow(unused)]
 
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, env};
 
 use serde::{Serialize, Deserialize};
 use serde_json::from_str;
+use regex::Regex;
 
 fn main() {
-    let args: StringVec = std::env::args().collect();
-
-	let query = &args[1..];
-
-	solve_query(query);
+    let args = env::args();
+	println!("{:?}", solve_query(config_query(args)));
 }
 
 type StringVec = Vec<String>;
@@ -29,11 +27,35 @@ fn parse_json() -> Dictionary {
 	from_str(&dictionary_as_str).unwrap()
 }
 
-fn solve_query(query: &[String]) {
-	let solves: Vec<String> = Vec::new();
+fn config_query(mut query: env::Args) -> Vec<String> {
+	query.next();
 
-	let query_vec = query.split(|e| true);
+	let mut query_collection: Vec<String> = Vec::new();
+
+	for str in query {
+		if !str.is_empty() {
+			query_collection.push(str);
+		}
+	}
+
+	query_collection
 	
-	println!("{:?}", query_vec);
+}
 
+fn solve_query(query: Vec<String>) -> String {
+	let dictionary = parse_json();
+	let english_dictionary = dictionary.dictionary;
+	let mut solves: Vec<String> = Vec::new();
+
+	for word in english_dictionary {
+	let word_satisfies = query
+		.iter()
+		.map(|pattern|Regex::new(pattern).unwrap())
+		.all(|regex| regex.is_match(&word));
+	if word_satisfies {
+		solves.push(word);
+		}
+	}
+
+	solves.join(" ")
 }
