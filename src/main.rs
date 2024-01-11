@@ -5,21 +5,20 @@ use std::{collections::HashMap, fs, env};
 use serde::{Serialize, Deserialize};
 use serde_json::from_str;
 use regex::Regex;
+use std::time::Instant;
 
 fn main() {
     let args = env::args();
-	println!("{:?}", solve_query(config_query(args)));
+	println!("{:?}", solve_query(config_query(args)).join(" "));
 }
-
-type StringVec = Vec<String>;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Dictionary {
-	dictionary: StringVec,
+	dictionary: Vec<String>,
 	syllables: HashMap<String, u32>,
-	sn: StringVec,
-	minerals: StringVec,
-	phobias: StringVec,
+	sn: Vec<String>,
+	minerals: Vec<String>,
+	phobias: Vec<String>,
 }
 
 fn parse_json() -> Dictionary {
@@ -30,32 +29,35 @@ fn parse_json() -> Dictionary {
 fn config_query(mut query: env::Args) -> Vec<String> {
 	query.next();
 
-	let mut query_collection: Vec<String> = Vec::new();
-
-	for str in query {
-		if !str.is_empty() {
-			query_collection.push(str);
-		}
-	}
-
-	query_collection
-	
+	query
+		.filter(|frag| !frag.is_empty())
+		.collect()
 }
 
-fn solve_query(query: Vec<String>) -> String {
+fn solve_query(query: Vec<String>) -> Vec<String> {
 	let dictionary = parse_json();
-	let english_dictionary = dictionary.dictionary;
-	let mut solves: Vec<String> = Vec::new();
+    let english_dictionary = dictionary.dictionary;
+	
+	let start_time = Instant::now();
 
-	for word in english_dictionary {
-	let word_satisfies = query
-		.iter()
-		.map(|pattern|Regex::new(pattern).unwrap())
-		.all(|regex| regex.is_match(&word));
-	if word_satisfies {
-		solves.push(word);
-		}
-	}
+    let cache: HashMap<String, Regex> = query
+        .iter()
+        .map(|s| (s.clone(), Regex::new(s).unwrap()))
+        .collect();
 
-	solves.join(" ")
+	let solves = english_dictionary
+        .into_iter()
+        .filter(|word| {
+            query
+                .iter()
+                .map(|pattern| cache.get(pattern).unwrap())
+                .all(|regex| regex.is_match(word))
+			})
+		.take(15)
+        .collect();
+
+	let duration = start_time.elapsed();
+	println!("Time taken: {:?}", duration);
+
+	solves
 }
