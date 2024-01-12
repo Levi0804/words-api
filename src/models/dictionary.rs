@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 use std::fs;
 
+use serde::{Serialize, Deserialize};
 use serde_json::from_str;
 use regex::Regex;
 
@@ -16,8 +16,9 @@ pub struct Dictionary {
 
 impl Dictionary {
 	pub fn new() -> Dictionary {
-		let dictionary_as_str = fs::read_to_string("english.json").unwrap();
-		from_str(&dictionary_as_str).unwrap()
+		from_str(
+			&fs::read_to_string("english.json").unwrap()
+		).unwrap()
 	}
 
 	pub fn solve_query(&self, query: Vec<String>) -> String {
@@ -26,8 +27,8 @@ impl Dictionary {
 			.map(|s| (s.clone(), Regex::new(s).unwrap()))
 			.collect();
 	
-		let solves: Vec<String> = self.dictionary.clone()
-			.into_iter()
+		let solves: Vec<String> = self.dictionary
+			.iter()
 			.filter(|word| {
 				query
 					.iter()
@@ -35,6 +36,7 @@ impl Dictionary {
 					.all(|regex| regex.is_match(word))
 				})
 			.take(15)
+			.cloned()
 			.collect();
 
 		solves.join(" ")
