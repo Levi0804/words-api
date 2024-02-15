@@ -1,18 +1,25 @@
-use std::env;
-mod models;
-use crate::models::Dictionary;
+use actix_web::{get, HttpServer, App, web::{Path,Json}};
 
-fn main() {
-    let args = env::args();
-	let dictionary = Dictionary::new();
-	let congiured_query = config_query(args);
-	println!("{:?}", dictionary.solve_query(congiured_query));
+mod data;
+use crate::data::Dictionary;
+mod models;
+use crate::models::{Query, QueryJson};
+mod error;
+use crate::error::QueryError;
+
+#[get("/search/{query}")]
+async fn get_solve(body: Path<Query>) -> Result<Json<QueryJson>, QueryError> {
+    let query = body.into_inner().config(); 
+    Ok(Json(QueryJson::new(Dictionary::solve_query(query[0].as_str()))))
 }
 
-fn config_query(mut query: env::Args) -> Vec<String> {
-	query.next();
-
-	query
-		.filter(|frag| !frag.is_empty())
-		.collect()
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+	HttpServer::new( || {
+		App::new()
+			.service(get_solve) 
+	})
+	.bind("127.0.0.1:8080")?
+	.run()
+	.await
 }

@@ -1,3 +1,3 @@
-// dicitionary.rs
-pub mod dictionary;
-pub use dictionary::Dictionary;
+pub mod query;
+pub use query::Query;
+pub use query::QueryJson;
