@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use derive_more::Display;
 use actix_web::{
 	http::{header::ContentType,StatusCode},
