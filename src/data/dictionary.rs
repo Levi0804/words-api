@@ -27,7 +27,7 @@ impl Dictionary {
 		)
 		.unwrap()
 	}
-		
+
 	pub fn solve_query(query: &str) -> Vec<String> {
 		let length: i32 = ENGLISH.dictionary.len().try_into().unwrap();
 		let threads_required = 1; 
@@ -74,4 +74,4 @@ impl Dictionary {
 			.map(|s|s.to_owned())
 			.collect()
 	 }
-	}
+}
